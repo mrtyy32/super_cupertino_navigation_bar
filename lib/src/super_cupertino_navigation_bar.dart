@@ -258,7 +258,17 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                       ),
                     ),
                   ],
-              body: widget.body,
+              body: Padding(
+                padding: EdgeInsets.only(
+                  top:
+                      (widget.appBar.expandedHeight ??
+                      (topPadding +
+                          widget
+                              .measures
+                              .appbarHeight)), // expandedHeight varsa onu, yoksa varsayılanı kullan
+                ),
+                child: widget.body,
+              ),
             ),
             ValueListenableBuilder(
               valueListenable: Store.instance.searchBarResultVisible,
@@ -323,9 +333,9 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                     targetExpandedHeight -
                         _scrollOffset, // Kaydırma miktarına göre mevcut yükseklik
                     minCollapsedHeight, // Minimum yükseklik (tamamen daraltıldığında)
-                    widget.stretch
-                        ? targetExpandedHeight * 1.5
-                        : targetExpandedHeight, // Maksimum yükseklik (stretch ile 1.5 katına kadar genişleyebilir, yoksa hedef yükseklik)
+                    // BURADAKİ DEĞİŞİKLİK: stretch olsa bile max değeri hedef yükseklikle sınırla.
+                    // Aşırı kaydırma (overscroll) davranışını ayrı ele alacağız.
+                    targetExpandedHeight,
                   );
                 } else {
                   // expandedHeight belirtilmemişse mevcut varsayılan mantığı kullan
@@ -338,11 +348,8 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                       ? clampDouble(
                           defaultExpandedHeight - _scrollOffset,
                           minCollapsedHeight,
-                          widget.stretch
-                              ? defaultExpandedHeight *
-                                    1.5 // Varsayılan yükseklik için de stretch faktörü uygula
-                              : defaultExpandedHeight,
-                        )
+                          defaultExpandedHeight,
+                        ) // Varsayılan yükseklik için de max değeri sınırla
                       : clampDouble(
                           defaultExpandedHeight - _scrollOffset,
                           topPadding +
@@ -350,11 +357,20 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                               widget
                                   .measures
                                   .largeTitleContainerHeight, // Pinned davranış için farklı minimum
-                          widget.stretch
-                              ? defaultExpandedHeight *
-                                    1.5 // Varsayılan yükseklik için de stretch faktörü uygula
-                              : defaultExpandedHeight,
-                        );
+                          defaultExpandedHeight,
+                        ); // Varsayılan yükseklik için de max değeri sınırla
+                }
+
+                // Aşırı kaydırma (overscroll) için ayrı bir kontrol ekleyelim
+                // Eğer _scrollOffset negatifse (yani aşırı kaydırma varsa) ve stretch true ise
+                if (widget.stretch && _scrollOffset < 0) {
+                  // fullappbarheight'ı belirlenen expandedHeight'tan başlayarak aşırı kaydırma miktarına göre artır.
+                  // Burada bir çarpan kullanmak, esneme miktarını kontrol etmenizi sağlar.
+                  // Örneğin, Math.abs(_scrollOffset) * 0.5 (yüzde 50 esneme)
+                  double stretchAmount =
+                      -_scrollOffset *
+                      0.5; // Örnek: Kaydırma miktarının yarısı kadar esneme
+                  fullappbarheight = fullappbarheight + stretchAmount;
                 }
 
                 // large title height
