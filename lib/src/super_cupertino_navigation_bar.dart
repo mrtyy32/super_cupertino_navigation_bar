@@ -280,31 +280,45 @@ class _SuperScaffoldState extends State<SuperScaffold> {
             ValueListenableBuilder(
               valueListenable: Store.instance.scrollOffset,
               builder: (context, scrollOffset, child) {
-                // full appbar height
-                double fullappbarheight =
-                    widget.appBar.searchBar!.scrollBehavior ==
-                            SearchBarScrollBehavior.floated
-                        ? clampDouble(
-                            topPadding +
-                                widget.measures.appbarHeight -
-                                _scrollOffset,
-                            topPadding +
-                                widget.measures.primaryToolbarHeight +
-                                widget.appBar.bottom!.height,
-                            widget.stretch
-                                ? 3000
-                                : topPadding + widget.measures.appbarHeight)
-                        : clampDouble(
-                            topPadding +
-                                widget.measures.appbarHeight -
-                                _scrollOffset,
-                            topPadding +
-                                widget.measures.appbarHeight -
-                                widget.measures.largeTitleContainerHeight,
-                            widget.stretch
-                                ? 3000
-                                : topPadding + widget.measures.appbarHeight);
+                // full appbar height hesaplaması
+                double fullappbarheight;
 
+                // Kullanıcının belirlediği expandedHeight varsa onu kullan
+                if (widget.appBar.expandedHeight != null) {
+                  fullappbarheight = clampDouble(
+                    widget.appBar.expandedHeight! - _scrollOffset, // Belirtilen expandedHeight'ı kullan
+                    topPadding +
+                        widget.measures.primaryToolbarHeight +
+                        widget.appBar.bottom!.height, // Minimum küçülme yüksekliği
+                    widget.stretch ? 3000 : widget.appBar.expandedHeight!, // Maksimum genişleme veya belirtilen expandedHeight
+                  );
+                } else {
+                  // expandedHeight belirtilmemişse mevcut mantığı kullan
+                  fullappbarheight =
+                      widget.appBar.searchBar!.scrollBehavior ==
+                              SearchBarScrollBehavior.floated
+                          ? clampDouble(
+                              topPadding +
+                                  widget.measures.appbarHeight -
+                                  _scrollOffset,
+                              topPadding +
+                                  widget.measures.primaryToolbarHeight +
+                                  widget.appBar.bottom!.height,
+                              widget.stretch
+                                  ? 3000
+                                  : topPadding + widget.measures.appbarHeight)
+                          : clampDouble(
+                              topPadding +
+                                  widget.measures.appbarHeight -
+                                  _scrollOffset,
+                              topPadding +
+                                  widget.measures.appbarHeight -
+                                  widget.measures.largeTitleContainerHeight,
+                              widget.stretch
+                                  ? 3000
+                                  : topPadding + widget.measures.appbarHeight);
+                }
+                
                 // large title height
                 double largeTitleHeight =
                     widget.appBar.searchBar!.scrollBehavior ==

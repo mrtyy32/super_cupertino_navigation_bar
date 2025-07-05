@@ -21,6 +21,7 @@ class SuperAppBar {
     this.border,
     this.shadowColor,
     this.backgroundBody,
+    this.expandedHeight,
   }) {
     searchBar = searchBar ?? SuperSearchBar();
     largeTitle = largeTitle ?? SuperLargeTitle();
@@ -134,4 +135,8 @@ class SuperAppBar {
   /// Arkaplan gövdesi, app bar'ın animasyonlarına uygun hareket eder ve
   /// title, bottom bar vs.'nin arkasında görünür.
   final Widget? backgroundBody;
+
+  /// Genişletilmiş AppBar'ın alacağı yüksekliği belirler.
+  /// Belirtilmezse veya null ise varsayılan hesaplama kullanılır.
+  final double? expandedHeight; // expandedHeight buraya eklendi
 }
