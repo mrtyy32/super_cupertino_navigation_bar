@@ -25,6 +25,7 @@ class SuperScaffold extends StatefulWidget {
     this.brightness,
     this.scrollController,
     this.transitionBetweenRoutes = true,
+    this.expandedHeight,
   }) : super(key: key) {
     measures = Measures(
       searchTextFieldHeight: appBar.searchBar!.height,
@@ -32,8 +33,11 @@ class SuperScaffold extends StatefulWidget {
       primaryToolbarHeight: appBar.height,
       bottomToolbarHeight: appBar.bottom!.height,
       searchBarAnimationDurationx: appBar.searchBar!.animationDuration,
+      expandedHeight: expandedHeight,
     );
   }
+
+  final double? expandedHeight;
 
   /// Whether the nav bar should stretch to fill the over-scroll area.
   ///
@@ -164,29 +168,28 @@ class _SuperScaffoldState extends State<SuperScaffold> {
   Widget build(BuildContext context) {
     final NavigationBarStaticComponents components =
         NavigationBarStaticComponents(
-          keys: keys,
-          route: ModalRoute.of(context),
-          userLeading: widget.appBar.leading,
-          automaticallyImplyLeading: widget.appBar.automaticallyImplyLeading,
-          automaticallyImplyTitle: true,
-          previousPageTitle: widget.appBar.previousPageTitle,
-          userMiddle: widget.appBar.title,
-          userTrailing: widget.appBar.actions,
-          largeTitleActions: Row(
-            children: [...?widget.appBar.largeTitle!.actions],
-          ),
-          userLargeTitle: Text(
-            widget.appBar.largeTitle!.largeTitle,
-            style: widget.appBar.largeTitle!.textStyle.copyWith(
-              color:
-                  widget.appBar.largeTitle!.textStyle.color ??
-                  Theme.of(context).textTheme.bodyMedium!.color,
-            ),
-          ),
-          appbarBottom: widget.appBar.bottom!.child,
-          padding: null,
-          large: true,
-        );
+      keys: keys,
+      route: ModalRoute.of(context),
+      userLeading: widget.appBar.leading,
+      automaticallyImplyLeading: widget.appBar.automaticallyImplyLeading,
+      automaticallyImplyTitle: true,
+      previousPageTitle: widget.appBar.previousPageTitle,
+      userMiddle: widget.appBar.title,
+      userTrailing: widget.appBar.actions,
+      largeTitleActions: Row(
+        children: [...?widget.appBar.largeTitle!.actions],
+      ),
+      userLargeTitle: Text(
+        widget.appBar.largeTitle!.largeTitle,
+        style: widget.appBar.largeTitle!.textStyle.copyWith(
+          color: widget.appBar.largeTitle!.textStyle.color ??
+              Theme.of(context).textTheme.bodyMedium!.color,
+        ),
+      ),
+      appbarBottom: widget.appBar.bottom!.child,
+      padding: null,
+      large: true,
+    );
 
     double topPadding = MediaQuery.of(context).padding.top;
 
@@ -223,52 +226,32 @@ class _SuperScaffoldState extends State<SuperScaffold> {
               controller: _scrollController,
               headerSliverBuilder:
                   (BuildContext context, bool innerBoxIsScrolled) => [
-                    OverlapAbsorberPlus(
-                      sliver: SliverToBoxAdapter(
-                        child: ValueListenableBuilder(
-                          valueListenable:
-                              Store.instance.searchBarAnimationStatus,
-                          builder: (context, animationStatus, child) {
-                            return AnimatedContainer(
-                              duration:
-                                  animationStatus ==
-                                      SearchBarAnimationStatus.paused
+                OverlapAbsorberPlus(
+                  sliver: SliverToBoxAdapter(
+                    child: ValueListenableBuilder(
+                      valueListenable: Store.instance.searchBarAnimationStatus,
+                      builder: (context, animationStatus, child) {
+                        return AnimatedContainer(
+                          duration:
+                              animationStatus == SearchBarAnimationStatus.paused
                                   ? Duration.zero
                                   : widget.measures.searchBarAnimationDuration,
-                              height: Store.instance.searchBarHasFocus.value
-                                  ? (widget
-                                                .appBar
-                                                .searchBar!
-                                                .animationBehavior ==
-                                            SearchBarAnimationBehavior.top
-                                        ? topPadding +
-                                              widget
-                                                  .measures
-                                                  .searchContainerHeight +
-                                              widget
-                                                  .measures
-                                                  .bottomToolbarHeight
-                                                  .toDouble()
-                                        : topPadding +
-                                              widget.measures.appbarHeight)
-                                  : topPadding + widget.measures.appbarHeight,
-                            );
-                          },
-                        ),
-                      ),
+                          height: Store.instance.searchBarHasFocus.value
+                              ? (widget.appBar.searchBar!.animationBehavior ==
+                                      SearchBarAnimationBehavior.top
+                                  ? topPadding +
+                                      widget.measures.searchContainerHeight +
+                                      widget.measures.bottomToolbarHeight
+                                          .toDouble()
+                                  : topPadding + widget.measures.appbarHeight)
+                              : topPadding + widget.measures.appbarHeight,
+                        );
+                      },
                     ),
-                  ],
-              body: Padding(
-                padding: EdgeInsets.only(
-                  top:
-                      (widget.appBar.expandedHeight ??
-                      (topPadding +
-                          widget
-                              .measures
-                              .appbarHeight)), // expandedHeight varsa onu, yoksa varsayılanı kullan
+                  ),
                 ),
-                child: widget.body,
-              ),
+              ],
+              body: widget.body,
             ),
             ValueListenableBuilder(
               valueListenable: Store.instance.searchBarResultVisible,
@@ -281,15 +264,13 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                     child: Container(
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height,
-                      color:
-                          CupertinoDynamicColor.maybeResolve(
+                      color: CupertinoDynamicColor.maybeResolve(
                             widget.appBar.searchBar!.resultColor,
                             context,
                           ) ??
                           CupertinoTheme.of(context).scaffoldBackgroundColor,
                       padding: EdgeInsets.only(
-                        top:
-                            topPadding +
+                        top: topPadding +
                             widget.measures.searchContainerHeight.toDouble() +
                             widget.measures.bottomToolbarHeight.toDouble(),
                       ),
@@ -311,131 +292,90 @@ class _SuperScaffoldState extends State<SuperScaffold> {
               valueListenable: Store.instance.scrollOffset,
               builder: (context, scrollOffset, child) {
                 // Minimum daraltılmış yükseklik (top padding + primary toolbar + bottom bar)
-                double minCollapsedHeight =
-                    topPadding +
-                    widget.measures.primaryToolbarHeight +
-                    widget.appBar.bottom!.height;
-
-                // full appbar height hesaplaması
-                double fullappbarheight;
-
-                // Kullanıcının belirlediği expandedHeight varsa
-                if (widget.appBar.expandedHeight != null) {
-                  // Hedeflenen genişletilmiş yükseklik (kullanıcının verdiği değer)
-                  double targetExpandedHeight = widget.appBar.expandedHeight!;
-
-                  // Hedeflenen genişletilmiş yüksekliğin minimum daraltılmış yükseklikten az olmamasını sağla
-                  if (targetExpandedHeight < minCollapsedHeight) {
-                    targetExpandedHeight = minCollapsedHeight;
-                  }
-
-                  fullappbarheight = clampDouble(
-                    targetExpandedHeight -
-                        _scrollOffset, // Kaydırma miktarına göre mevcut yükseklik
-                    minCollapsedHeight, // Minimum yükseklik (tamamen daraltıldığında)
-                    // BURADAKİ DEĞİŞİKLİK: stretch olsa bile max değeri hedef yükseklikle sınırla.
-                    // Aşırı kaydırma (overscroll) davranışını ayrı ele alacağız.
-                    targetExpandedHeight,
-                  );
-                } else {
-                  // expandedHeight belirtilmemişse mevcut varsayılan mantığı kullan
-                  double defaultExpandedHeight =
-                      topPadding + widget.measures.appbarHeight;
-
-                  fullappbarheight =
-                      widget.appBar.searchBar!.scrollBehavior ==
-                          SearchBarScrollBehavior.floated
-                      ? clampDouble(
-                          defaultExpandedHeight - _scrollOffset,
-                          minCollapsedHeight,
-                          defaultExpandedHeight,
-                        ) // Varsayılan yükseklik için de max değeri sınırla
-                      : clampDouble(
-                          defaultExpandedHeight - _scrollOffset,
-                          topPadding +
-                              widget.measures.appbarHeight -
-                              widget
-                                  .measures
-                                  .largeTitleContainerHeight, // Pinned davranış için farklı minimum
-                          defaultExpandedHeight,
-                        ); // Varsayılan yükseklik için de max değeri sınırla
-                }
-
-                // Aşırı kaydırma (overscroll) için ayrı bir kontrol ekleyelim
-                // Eğer _scrollOffset negatifse (yani aşırı kaydırma varsa) ve stretch true ise
-                if (widget.stretch && _scrollOffset < 0) {
-                  // fullappbarheight'ı belirlenen expandedHeight'tan başlayarak aşırı kaydırma miktarına göre artır.
-                  // Burada bir çarpan kullanmak, esneme miktarını kontrol etmenizi sağlar.
-                  // Örneğin, Math.abs(_scrollOffset) * 0.5 (yüzde 50 esneme)
-                  double stretchAmount =
-                      -_scrollOffset *
-                      0.5; // Örnek: Kaydırma miktarının yarısı kadar esneme
-                  fullappbarheight = fullappbarheight + stretchAmount;
-                }
+                double minCollapsedHeight = topPadding + 20;
+                // full appbar height
+                double fullappbarheight =
+                    widget.appBar.searchBar!.scrollBehavior ==
+                            SearchBarScrollBehavior.floated
+                        ? clampDouble(
+                            topPadding +
+                                widget.measures.appbarHeight -
+                                _scrollOffset,
+                            topPadding +
+                                widget.measures.primaryToolbarHeight +
+                                widget.appBar.bottom!.height,
+                            widget.stretch
+                                ? 3000
+                                : topPadding + widget.measures.appbarHeight)
+                        : clampDouble(
+                            topPadding +
+                                widget.measures.appbarHeight -
+                                _scrollOffset,
+                            topPadding +
+                                widget.measures.appbarHeight -
+                                widget.measures.largeTitleContainerHeight,
+                            widget.stretch
+                                ? 3000
+                                : topPadding + widget.measures.appbarHeight);
 
                 // large title height
                 double largeTitleHeight =
                     widget.appBar.searchBar!.scrollBehavior ==
-                        SearchBarScrollBehavior.floated
-                    ? (_scrollOffset > widget.measures.searchContainerHeight
-                          ? clampDouble(
-                              widget.measures.largeTitleContainerHeight -
-                                  (_scrollOffset -
-                                      widget.measures.searchContainerHeight),
-                              0,
-                              widget.measures.largeTitleContainerHeight,
-                            )
-                          : widget.measures.largeTitleContainerHeight)
-                    : clampDouble(
-                        widget.measures.largeTitleContainerHeight -
-                            _scrollOffset,
-                        0,
-                        widget.measures.largeTitleContainerHeight,
-                      );
+                            SearchBarScrollBehavior.floated
+                        ? (_scrollOffset > widget.measures.searchContainerHeight
+                            ? clampDouble(
+                                widget.measures.largeTitleContainerHeight -
+                                    (_scrollOffset -
+                                        widget.measures.searchContainerHeight),
+                                0,
+                                widget.measures.largeTitleContainerHeight,
+                              )
+                            : widget.measures.largeTitleContainerHeight)
+                        : clampDouble(
+                            widget.measures.largeTitleContainerHeight -
+                                _scrollOffset,
+                            0,
+                            widget.measures.largeTitleContainerHeight,
+                          );
 
                 // searchbar height
                 double searchBarHeight =
                     widget.appBar.searchBar!.scrollBehavior ==
-                        SearchBarScrollBehavior.floated
-                    ? (Store.instance.searchBarHasFocus.value
-                          ? widget.measures.searchContainerHeight
-                          : clampDouble(
-                              widget.measures.searchContainerHeight -
-                                  _scrollOffset,
-                              0,
-                              widget.measures.searchContainerHeight,
-                            ))
-                    : widget.measures.searchContainerHeight;
+                            SearchBarScrollBehavior.floated
+                        ? (Store.instance.searchBarHasFocus.value
+                            ? widget.measures.searchContainerHeight
+                            : clampDouble(
+                                widget.measures.searchContainerHeight -
+                                    _scrollOffset,
+                                0,
+                                widget.measures.searchContainerHeight,
+                              ))
+                        : widget.measures.searchContainerHeight;
 
-                double opacity =
-                    widget.appBar.searchBar!.scrollBehavior ==
+                double opacity = widget.appBar.searchBar!.scrollBehavior ==
                         SearchBarScrollBehavior.floated
                     ? (Store.instance.searchBarHasFocus.value
-                          ? 1
-                          : clampDouble(1 - _scrollOffset / 10, 0, 1))
+                        ? 1
+                        : clampDouble(1 - _scrollOffset / 10, 0, 1))
                     : 1;
 
-                double titleOpacity =
-                    widget.appBar.searchBar!.scrollBehavior ==
+                double titleOpacity = widget.appBar.searchBar!.scrollBehavior ==
                         SearchBarScrollBehavior.floated
                     ? (_scrollOffset >=
-                              (widget
-                                      .measures
-                                      .appbarHeightExceptPrimaryToolbar -
-                                  widget.appBar.bottom!.height)
-                          ? 1
-                          : (widget.measures.largeTitleContainerHeight > 0
-                                ? 0
-                                : 1))
+                            (widget.measures.appbarHeightExceptPrimaryToolbar -
+                                widget.appBar.bottom!.height)
+                        ? 1
+                        : (widget.measures.largeTitleContainerHeight > 0
+                            ? 0
+                            : 1))
                     : (_scrollOffset >=
-                              (widget.measures.largeTitleContainerHeight)
-                          ? 1
-                          : (widget.measures.largeTitleContainerHeight > 0
-                                ? 0
-                                : 1));
+                            (widget.measures.largeTitleContainerHeight)
+                        ? 1
+                        : (widget.measures.largeTitleContainerHeight > 0
+                            ? 0
+                            : 1));
 
-                double focussedToolbar =
-                    topPadding +
+                double focussedToolbar = topPadding +
                     widget.measures.searchContainerHeight +
                     widget.appBar.bottom!.height;
 
@@ -461,21 +401,20 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                     return AnimatedPositioned(
                       duration:
                           animationStatus == SearchBarAnimationStatus.paused
-                          ? Duration.zero
-                          : widget.measures.searchBarAnimationDuration,
+                              ? Duration.zero
+                              : widget.measures.searchBarAnimationDuration,
                       top: 0,
                       left: 0,
                       right: 0,
                       height: Store.instance.searchBarHasFocus.value
                           ? (widget.appBar.searchBar!.animationBehavior ==
-                                    SearchBarAnimationBehavior.top
-                                ? focussedToolbar
-                                : fullappbarheight)
+                                  SearchBarAnimationBehavior.top
+                              ? focussedToolbar
+                              : fullappbarheight)
                           : fullappbarheight,
                       child: wrapWithBackground(
                         border: widget.appBar.border,
-                        backgroundColor:
-                            CupertinoDynamicColor.maybeResolve(
+                        backgroundColor: CupertinoDynamicColor.maybeResolve(
                               widget.appBar.backgroundColor,
                               context,
                             ) ??
@@ -489,40 +428,34 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                 if (widget.appBar.backgroundBody != null)
                                   Positioned.fill(
                                     child: AnimatedOpacity(
-                                      duration:
-                                          animationStatus ==
+                                      duration: animationStatus ==
                                               SearchBarAnimationStatus.paused
                                           ? Duration.zero
-                                          : widget
-                                                .measures
-                                                .titleOpacityAnimationDuration,
-                                      opacity:
-                                          Store.instance.searchBarHasFocus.value
+                                          : widget.measures
+                                              .titleOpacityAnimationDuration,
+                                      opacity: Store
+                                              .instance.searchBarHasFocus.value
                                           ? 0 // Arama çubuğu odaklandığında opacity 0 olacak
-                                          : (widget
-                                                        .appBar
-                                                        .searchBar!
-                                                        .scrollBehavior ==
-                                                    SearchBarScrollBehavior
-                                                        .floated
-                                                ? clampDouble(
-                                                    1 -
-                                                        _scrollOffset /
-                                                            widget
-                                                                .measures
-                                                                .largeTitleContainerHeight,
-                                                    0,
-                                                    1,
-                                                  )
-                                                : clampDouble(
-                                                    1 -
-                                                        _scrollOffset /
-                                                            widget
-                                                                .measures
-                                                                .largeTitleContainerHeight,
-                                                    0,
-                                                    1,
-                                                  )),
+                                          : (widget.appBar.searchBar!
+                                                      .scrollBehavior ==
+                                                  SearchBarScrollBehavior
+                                                      .floated
+                                              ? clampDouble(
+                                                  1 -
+                                                      _scrollOffset /
+                                                          widget.measures
+                                                              .largeTitleContainerHeight,
+                                                  0,
+                                                  1,
+                                                )
+                                              : clampDouble(
+                                                  1 -
+                                                      _scrollOffset /
+                                                          widget.measures
+                                                              .largeTitleContainerHeight,
+                                                  0,
+                                                  1,
+                                                )),
                                       child: widget.appBar.backgroundBody!,
                                     ),
                                   ),
@@ -530,64 +463,50 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     AnimatedContainer(
-                                      height:
-                                          Store.instance.searchBarHasFocus.value
-                                          ? (widget
-                                                        .appBar
-                                                        .searchBar!
+                                      height: Store
+                                              .instance.searchBarHasFocus.value
+                                          ? (widget.appBar.searchBar!
+                                                      .animationBehavior ==
+                                                  SearchBarAnimationBehavior.top
+                                              ? MediaQuery.paddingOf(
+                                                  context,
+                                                ).top
+                                              : widget.measures
+                                                      .primaryToolbarHeight +
+                                                  MediaQuery.paddingOf(
+                                                    context,
+                                                  ).top)
+                                          : widget.measures
+                                                  .primaryToolbarHeight +
+                                              MediaQuery.paddingOf(
+                                                context,
+                                              ).top,
+                                      duration: animationStatus ==
+                                              SearchBarAnimationStatus.paused
+                                          ? Duration.zero
+                                          : widget.measures
+                                              .searchBarAnimationDuration,
+                                      child: AnimatedOpacity(
+                                        duration: animationStatus ==
+                                                SearchBarAnimationStatus.paused
+                                            ? Duration.zero
+                                            : widget.measures
+                                                .titleOpacityAnimationDuration,
+                                        opacity: Store.instance
+                                                .searchBarHasFocus.value
+                                            ? (widget.appBar.searchBar!
                                                         .animationBehavior ==
                                                     SearchBarAnimationBehavior
                                                         .top
-                                                ? MediaQuery.paddingOf(
-                                                    context,
-                                                  ).top
-                                                : widget
-                                                          .measures
-                                                          .primaryToolbarHeight +
-                                                      MediaQuery.paddingOf(
-                                                        context,
-                                                      ).top)
-                                          : widget
-                                                    .measures
-                                                    .primaryToolbarHeight +
-                                                MediaQuery.paddingOf(
-                                                  context,
-                                                ).top,
-                                      duration:
-                                          animationStatus ==
-                                              SearchBarAnimationStatus.paused
-                                          ? Duration.zero
-                                          : widget
-                                                .measures
-                                                .searchBarAnimationDuration,
-                                      child: AnimatedOpacity(
-                                        duration:
-                                            animationStatus ==
-                                                SearchBarAnimationStatus.paused
-                                            ? Duration.zero
-                                            : widget
-                                                  .measures
-                                                  .titleOpacityAnimationDuration,
-                                        opacity:
-                                            Store
-                                                .instance
-                                                .searchBarHasFocus
-                                                .value
-                                            ? (widget
-                                                          .appBar
-                                                          .searchBar!
-                                                          .animationBehavior ==
-                                                      SearchBarAnimationBehavior
-                                                          .top
-                                                  ? 0
-                                                  : 1)
+                                                ? 0
+                                                : 1)
                                             : 1,
                                         child: PersistentNavigationBar(
                                           components: components,
                                           middleVisible:
                                               widget.appBar.alwaysShowTitle
-                                              ? null
-                                              : titleOpacity != 0,
+                                                  ? null
+                                                  : titleOpacity != 0,
                                         ),
                                       ),
                                     ),
@@ -596,55 +515,39 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                       padding:
                                           widget.appBar.largeTitle!.padding,
                                       child: AnimatedOpacity(
-                                        duration:
-                                            animationStatus ==
+                                        duration: animationStatus ==
                                                 SearchBarAnimationStatus.paused
                                             ? Duration.zero
-                                            : widget
-                                                  .measures
-                                                  .titleOpacityAnimationDuration,
-                                        opacity:
-                                            Store
-                                                .instance
-                                                .searchBarHasFocus
-                                                .value
-                                            ? (widget
-                                                          .appBar
-                                                          .searchBar!
+                                            : widget.measures
+                                                .titleOpacityAnimationDuration,
+                                        opacity: Store.instance
+                                                .searchBarHasFocus.value
+                                            ? (widget.appBar.searchBar!
+                                                        .animationBehavior ==
+                                                    SearchBarAnimationBehavior
+                                                        .top
+                                                ? 0
+                                                : 1)
+                                            : 1,
+                                        child: AnimatedContainer(
+                                          height: Store.instance
+                                                  .searchBarHasFocus.value
+                                              ? (widget.appBar.searchBar!
                                                           .animationBehavior ==
                                                       SearchBarAnimationBehavior
                                                           .top
                                                   ? 0
-                                                  : 1)
-                                            : 1,
-                                        child: AnimatedContainer(
-                                          height:
-                                              Store
-                                                  .instance
-                                                  .searchBarHasFocus
-                                                  .value
-                                              ? (widget
-                                                            .appBar
-                                                            .searchBar!
-                                                            .animationBehavior ==
-                                                        SearchBarAnimationBehavior
-                                                            .top
-                                                    ? 0
-                                                    : largeTitleHeight)
+                                                  : largeTitleHeight)
                                               : largeTitleHeight,
-                                          duration:
-                                              animationStatus ==
+                                          duration: animationStatus ==
                                                   SearchBarAnimationStatus
                                                       .paused
                                               ? Duration.zero
-                                              : widget
-                                                    .measures
-                                                    .searchBarAnimationDuration,
+                                              : widget.measures
+                                                  .searchBarAnimationDuration,
                                           child: Padding(
                                             padding: EdgeInsets.only(
-                                              bottom:
-                                                  widget
-                                                          .measures
+                                              bottom: widget.measures
                                                           .largeTitleContainerHeight >
                                                       0
                                                   ? 8.0
@@ -689,8 +592,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                         height: searchBarHeight,
                                         child: Padding(
                                           padding: EdgeInsets.only(
-                                            bottom: Measures
-                                                .instance
+                                            bottom: Measures.instance
                                                 .searchBarBottomPadding,
                                           ),
                                           child: Stack(
@@ -705,10 +607,10 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                             .stretch,
                                                     children: [
                                                       Flexible(
-                                                        child: CupertinoSearchTextField(
+                                                        child:
+                                                            CupertinoSearchTextField(
                                                           prefixIcon: Opacity(
-                                                            opacity:
-                                                                Store
+                                                            opacity: Store
                                                                     .instance
                                                                     .searchBarHasFocus
                                                                     .value
@@ -719,48 +621,46 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                                 .searchBar!
                                                                 .prefixIcon,
                                                           ),
-                                                          placeholder:
-                                                              Store
+                                                          placeholder: Store
                                                                   .instance
                                                                   .searchBarHasFocus
                                                                   .value
                                                               ? ""
                                                               : widget
-                                                                    .appBar
-                                                                    .searchBar!
-                                                                    .placeholderText,
+                                                                  .appBar
+                                                                  .searchBar!
+                                                                  .placeholderText,
                                                           placeholderStyle: widget
                                                               .appBar
                                                               .searchBar!
                                                               .placeholderTextStyle
                                                               .copyWith(
-                                                                color: widget
-                                                                    .appBar
-                                                                    .searchBar!
-                                                                    .placeholderTextStyle
-                                                                    .color!
-                                                                    .withOpacity(
-                                                                      opacity,
-                                                                    ),
-                                                              ),
+                                                            color: widget
+                                                                .appBar
+                                                                .searchBar!
+                                                                .placeholderTextStyle
+                                                                .color!
+                                                                .withOpacity(
+                                                              opacity,
+                                                            ),
+                                                          ),
                                                           style: widget
                                                               .appBar
                                                               .searchBar!
                                                               .textStyle
                                                               .copyWith(
-                                                                color:
-                                                                    widget
-                                                                        .appBar
-                                                                        .searchBar!
-                                                                        .textStyle
-                                                                        .color ??
-                                                                    Theme.of(
-                                                                          context,
-                                                                        )
-                                                                        .textTheme
-                                                                        .bodyMedium!
-                                                                        .color,
-                                                              ),
+                                                            color: widget
+                                                                    .appBar
+                                                                    .searchBar!
+                                                                    .textStyle
+                                                                    .color ??
+                                                                Theme.of(
+                                                                  context,
+                                                                )
+                                                                    .textTheme
+                                                                    .bodyMedium!
+                                                                    .color,
+                                                          ),
                                                           backgroundColor: widget
                                                               .appBar
                                                               .searchBar!
@@ -775,8 +675,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                             CrossAxisAlignment
                                                                 .center,
                                                         children: [
-                                                          for (SuperAction
-                                                              searchAction
+                                                          for (SuperAction searchAction
                                                               in widget
                                                                   .appBar
                                                                   .searchBar!
@@ -804,15 +703,14 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                             ),
                                                             secondChild:
                                                                 const SizedBox(),
-                                                            crossFadeState:
-                                                                Store
+                                                            crossFadeState: Store
                                                                     .instance
                                                                     .searchBarHasFocus
                                                                     .value
                                                                 ? CrossFadeState
-                                                                      .showFirst
+                                                                    .showFirst
                                                                 : CrossFadeState
-                                                                      .showSecond,
+                                                                    .showSecond,
                                                             duration: widget
                                                                 .measures
                                                                 .standartAnimationDuration,
@@ -835,21 +733,21 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                             ),
                                                             secondChild:
                                                                 const SizedBox(),
-                                                            crossFadeState:
-                                                                Store
+                                                            crossFadeState: Store
                                                                     .instance
                                                                     .searchBarHasFocus
                                                                     .value
                                                                 ? CrossFadeState
-                                                                      .showSecond
+                                                                    .showSecond
                                                                 : CrossFadeState
-                                                                      .showFirst,
+                                                                    .showFirst,
                                                             duration: widget
                                                                 .measures
                                                                 .standartAnimationDuration,
                                                           ),
                                                           Center(
-                                                            child: CupertinoButton(
+                                                            child:
+                                                                CupertinoButton(
                                                               minSize: 0,
                                                               padding:
                                                                   EdgeInsets
@@ -865,12 +763,12 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                                 _editingController
                                                                     .clear();
                                                               },
-                                                              child: AnimatedContainer(
+                                                              child:
+                                                                  AnimatedContainer(
                                                                 duration: widget
                                                                     .measures
                                                                     .standartAnimationDuration,
-                                                                width:
-                                                                    Store
+                                                                width: Store
                                                                         .instance
                                                                         .searchBarHasFocus
                                                                         .value
@@ -916,7 +814,8 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                 children: [
                                                   Flexible(
                                                     child: Focus(
-                                                      onFocusChange: (hasFocus) {
+                                                      onFocusChange:
+                                                          (hasFocus) {
                                                         if (isSubmitted) {
                                                           isSubmitted = false;
                                                           return;
@@ -926,7 +825,8 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                         );
                                                         setState(() {});
                                                       },
-                                                      child: CupertinoSearchTextField(
+                                                      child:
+                                                          CupertinoSearchTextField(
                                                         onSubmitted: (s) {
                                                           isSubmitted = true;
                                                           widget
@@ -944,10 +844,9 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                                 SearchBarResultBehavior
                                                                     .visibleOnInput) {
                                                               Store
-                                                                      .instance
-                                                                      .searchBarResultVisible
-                                                                      .value =
-                                                                  true;
+                                                                  .instance
+                                                                  .searchBarResultVisible
+                                                                  .value = true;
                                                             }
                                                           } else {
                                                             if (widget
@@ -957,10 +856,9 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                                 SearchBarResultBehavior
                                                                     .visibleOnInput) {
                                                               Store
-                                                                      .instance
-                                                                      .searchBarResultVisible
-                                                                      .value =
-                                                                  false;
+                                                                  .instance
+                                                                  .searchBarResultVisible
+                                                                  .value = false;
                                                             }
                                                           }
                                                           widget
@@ -985,33 +883,32 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                             .searchBar!
                                                             .placeholderTextStyle
                                                             .copyWith(
-                                                              color: widget
-                                                                  .appBar
-                                                                  .searchBar!
-                                                                  .placeholderTextStyle
-                                                                  .color!
-                                                                  .withOpacity(
-                                                                    opacity,
-                                                                  ),
-                                                            ),
+                                                          color: widget
+                                                              .appBar
+                                                              .searchBar!
+                                                              .placeholderTextStyle
+                                                              .color!
+                                                              .withOpacity(
+                                                            opacity,
+                                                          ),
+                                                        ),
                                                         style: widget
                                                             .appBar
                                                             .searchBar!
                                                             .textStyle
                                                             .copyWith(
-                                                              color:
-                                                                  widget
-                                                                      .appBar
-                                                                      .searchBar!
-                                                                      .textStyle
-                                                                      .color ??
-                                                                  Theme.of(
-                                                                        context,
-                                                                      )
-                                                                      .textTheme
-                                                                      .bodyMedium!
-                                                                      .color,
-                                                            ),
+                                                          color: widget
+                                                                  .appBar
+                                                                  .searchBar!
+                                                                  .textStyle
+                                                                  .color ??
+                                                              Theme.of(
+                                                                context,
+                                                              )
+                                                                  .textTheme
+                                                                  .bodyMedium!
+                                                                  .color,
+                                                        ),
                                                         controller:
                                                             _editingController,
                                                         focusNode: _focusNode,
@@ -1029,8 +926,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                         CrossAxisAlignment
                                                             .center,
                                                     children: [
-                                                      for (SuperAction
-                                                          searchAction
+                                                      for (SuperAction searchAction
                                                           in widget
                                                               .appBar
                                                               .searchBar!
@@ -1058,15 +954,14 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                         ),
                                                         secondChild:
                                                             const SizedBox(),
-                                                        crossFadeState:
-                                                            Store
+                                                        crossFadeState: Store
                                                                 .instance
                                                                 .searchBarHasFocus
                                                                 .value
                                                             ? CrossFadeState
-                                                                  .showFirst
+                                                                .showFirst
                                                             : CrossFadeState
-                                                                  .showSecond,
+                                                                .showSecond,
                                                         duration: widget
                                                             .measures
                                                             .standartAnimationDuration,
@@ -1089,15 +984,14 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                         ),
                                                         secondChild:
                                                             const SizedBox(),
-                                                        crossFadeState:
-                                                            Store
+                                                        crossFadeState: Store
                                                                 .instance
                                                                 .searchBarHasFocus
                                                                 .value
                                                             ? CrossFadeState
-                                                                  .showSecond
+                                                                .showSecond
                                                             : CrossFadeState
-                                                                  .showFirst,
+                                                                .showFirst,
                                                         duration: widget
                                                             .measures
                                                             .standartAnimationDuration,
@@ -1118,12 +1012,12 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                             _editingController
                                                                 .clear();
                                                           },
-                                                          child: AnimatedContainer(
+                                                          child:
+                                                              AnimatedContainer(
                                                             duration: widget
                                                                 .measures
                                                                 .standartAnimationDuration,
-                                                            width:
-                                                                Store
+                                                            width: Store
                                                                     .instance
                                                                     .searchBarHasFocus
                                                                     .value
@@ -1167,8 +1061,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                     ),
                                     AnimatedContainer(
                                       duration: widget
-                                          .measures
-                                          .searchBarAnimationDuration,
+                                          .measures.searchBarAnimationDuration,
                                       height:
                                           widget.measures.bottomToolbarHeight,
                                       color: widget.appBar.bottom!.color,
@@ -1177,8 +1070,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                         children: [
                                           Positioned(
                                             height: widget
-                                                .measures
-                                                .bottomToolbarHeight,
+                                                .measures.bottomToolbarHeight,
                                             bottom: 0,
                                             left: 0,
                                             right: 0,
@@ -1209,12 +1101,12 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                 componentsKeys: keys,
                                 backgroundColor:
                                     CupertinoDynamicColor.maybeResolve(
-                                      widget.appBar.backgroundColor,
-                                      context,
-                                    ) ??
-                                    CupertinoTheme.of(
-                                      context,
-                                    ).barBackgroundColor,
+                                          widget.appBar.backgroundColor,
+                                          context,
+                                        ) ??
+                                        CupertinoTheme.of(
+                                          context,
+                                        ).barBackgroundColor,
                                 backButtonTextStyle: CupertinoTheme.of(
                                   context,
                                 ).textTheme.navActionTextStyle,
@@ -1225,8 +1117,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                     widget.appBar.largeTitle!.textStyle,
                                 border: const Border(),
                                 hasUserMiddle: _collapsed,
-                                largeExpanded:
-                                    !_collapsed &&
+                                largeExpanded: !_collapsed &&
                                     widget.appBar.largeTitle!.enabled,
                                 searchBarHasFocus:
                                     Store.instance.searchBarHasFocus.value,

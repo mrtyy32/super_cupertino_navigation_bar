@@ -23,8 +23,10 @@ class Measures {
     required this.primaryToolbarHeight,
     required this.bottomToolbarHeight,
     required this.searchBarAnimationDurationx,
+    this.expandedHeight,
   });
 
+  double? expandedHeight;
   double largeTitleContainerHeight,
       primaryToolbarHeight,
       searchTextFieldHeight,
@@ -39,11 +41,15 @@ class Measures {
   Duration get scrollAnimationDuration => const Duration(milliseconds: 300);
   Duration get searchBarAnimationDuration => searchBarAnimationDurationx;
 
-  double get appbarHeight =>
+  double get test =>
       primaryToolbarHeight +
       searchContainerHeight +
       largeTitleContainerHeight +
       bottomToolbarHeight;
+
+  double get appbarHeight => expandedHeight != null
+      ? (test < (expandedHeight ?? 0) ? (expandedHeight ?? 0) : test)
+      : test;
 
   double get appbarHeightExceptPrimaryToolbar =>
       searchContainerHeight + largeTitleContainerHeight + bottomToolbarHeight;
