@@ -25,6 +25,7 @@ class SuperScaffold extends StatefulWidget {
     this.brightness,
     this.scrollController,
     this.transitionBetweenRoutes = true,
+    this.expandedHeight,
   }) : super(key: key) {
     measures = Measures(
       searchTextFieldHeight: appBar.searchBar!.height,
@@ -87,6 +88,10 @@ class SuperScaffold extends StatefulWidget {
   /// Can be any widget.
   /// Defaults to SizedBox()
   final Widget body;
+
+  /// Optional expanded height for the navigation bar.
+  /// If provided and greater than the calculated height, this value will be used instead.
+  final double? expandedHeight;
 
   final Function(bool)? onCollapsed;
   late final ScrollController? scrollController;
@@ -160,6 +165,25 @@ class _SuperScaffoldState extends State<SuperScaffold> {
     }
   }
 
+  double _calculateContainerHeight(double topPadding) {
+    // Mevcut hesaplanan yükseklik
+    double calculatedHeight = Store.instance.searchBarHasFocus.value
+        ? (widget.appBar.searchBar!.animationBehavior ==
+                SearchBarAnimationBehavior.top
+            ? topPadding +
+                widget.measures.searchContainerHeight +
+                widget.measures.bottomToolbarHeight.toDouble()
+            : topPadding + widget.measures.appbarHeight)
+        : topPadding + widget.measures.appbarHeight;
+    
+    // Eğer expandedHeight belirtilmişse ve hesaplanan yükseklikten büyükse
+    if (widget.expandedHeight != null && widget.expandedHeight! > calculatedHeight) {
+      return widget.expandedHeight!;
+    }
+    
+    return calculatedHeight;
+  }
+
   @override
   Widget build(BuildContext context) {
     final NavigationBarStaticComponents components =
@@ -228,15 +252,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                     SearchBarAnimationStatus.paused
                                 ? Duration.zero
                                 : widget.measures.searchBarAnimationDuration,
-                            height: Store.instance.searchBarHasFocus.value
-                                ? (widget.appBar.searchBar!.animationBehavior ==
-                                        SearchBarAnimationBehavior.top
-                                    ? topPadding +
-                                        widget.measures.searchContainerHeight +
-                                        widget.measures.bottomToolbarHeight
-                                            .toDouble()
-                                    : topPadding + widget.measures.appbarHeight)
-                                : topPadding + widget.measures.appbarHeight,
+                            height: _calculateContainerHeight(topPadding),
                           );
                         }),
                   ),
