@@ -20,6 +20,7 @@ class SuperAppBar {
     this.backgroundColor,
     this.border,
     this.shadowColor,
+    this.backgroundBody,
   }) {
     searchBar = searchBar ?? SuperSearchBar();
     largeTitle = largeTitle ?? SuperLargeTitle();
@@ -129,4 +130,8 @@ class SuperAppBar {
   /// If leading widget is not null, this parameter has no effect.
   /// {@endtemplate}
   final bool automaticallyImplyLeading;
+  
+  /// Arkaplan gövdesi, app bar'ın animasyonlarına uygun hareket eder ve
+  /// title, bottom bar vs.'nin arkasında görünür.
+  final Widget? backgroundBody;
 }
