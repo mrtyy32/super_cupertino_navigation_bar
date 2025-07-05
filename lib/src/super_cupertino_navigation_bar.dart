@@ -184,6 +184,39 @@ class _SuperScaffoldState extends State<SuperScaffold> {
     return calculatedHeight;
   }
 
+  double _calculateFullAppBarHeight(double topPadding, double scrollOffset) {
+    // Mevcut hesaplanan yükseklik
+    double calculatedHeight = widget.appBar.searchBar!.scrollBehavior ==
+            SearchBarScrollBehavior.floated
+        ? clampDouble(
+            topPadding +
+                widget.measures.appbarHeight -
+                scrollOffset,
+            topPadding +
+                widget.measures.primaryToolbarHeight +
+                widget.appBar.bottom!.height,
+            widget.stretch
+                ? 3000
+                : topPadding + widget.measures.appbarHeight)
+        : clampDouble(
+            topPadding +
+                widget.measures.appbarHeight -
+                scrollOffset,
+            topPadding +
+                widget.measures.appbarHeight -
+                widget.measures.largeTitleContainerHeight,
+            widget.stretch
+                ? 3000
+                : topPadding + widget.measures.appbarHeight);
+    
+    // Eğer expandedHeight belirtilmişse ve hesaplanan yükseklikten büyükse
+    if (widget.expandedHeight != null && widget.expandedHeight! > calculatedHeight) {
+      return widget.expandedHeight!;
+    }
+    
+    return calculatedHeight;
+  }
+
   @override
   Widget build(BuildContext context) {
     final NavigationBarStaticComponents components =
@@ -297,29 +330,7 @@ class _SuperScaffoldState extends State<SuperScaffold> {
               valueListenable: Store.instance.scrollOffset,
               builder: (context, scrollOffset, child) {
                 // full appbar height
-                double fullappbarheight =
-                    widget.appBar.searchBar!.scrollBehavior ==
-                            SearchBarScrollBehavior.floated
-                        ? clampDouble(
-                            topPadding +
-                                widget.measures.appbarHeight -
-                                _scrollOffset,
-                            topPadding +
-                                widget.measures.primaryToolbarHeight +
-                                widget.appBar.bottom!.height,
-                            widget.stretch
-                                ? 3000
-                                : topPadding + widget.measures.appbarHeight)
-                        : clampDouble(
-                            topPadding +
-                                widget.measures.appbarHeight -
-                                _scrollOffset,
-                            topPadding +
-                                widget.measures.appbarHeight -
-                                widget.measures.largeTitleContainerHeight,
-                            widget.stretch
-                                ? 3000
-                                : topPadding + widget.measures.appbarHeight);
+                double fullappbarheight = _calculateFullAppBarHeight(topPadding, _scrollOffset);
 
                 // large title height
                 double largeTitleHeight =
