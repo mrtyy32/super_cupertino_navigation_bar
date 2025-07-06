@@ -26,7 +26,6 @@ class SuperScaffold extends StatefulWidget {
     this.scrollController,
     this.transitionBetweenRoutes = true,
     this.expandedHeight,
-    this.autofocus = true,
   }) : super(key: key) {
     measures = Measures(
       searchTextFieldHeight:
@@ -38,8 +37,6 @@ class SuperScaffold extends StatefulWidget {
       expandedHeight: expandedHeight,
     );
   }
-
-  final bool autofocus;
 
   final double? expandedHeight;
 
@@ -598,8 +595,10 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                       Flexible(
                                                         child:
                                                             CupertinoSearchTextField(
-                                                          autofocus:
-                                                              widget.autofocus,
+                                                          autofocus: widget
+                                                              .appBar
+                                                              .searchBar!
+                                                              .autofocus,
                                                           prefixIcon: Opacity(
                                                             opacity: Store
                                                                     .instance

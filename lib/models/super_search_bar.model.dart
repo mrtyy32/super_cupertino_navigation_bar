@@ -24,6 +24,7 @@ class SuperSearchBar {
   final Widget searchResult;
   final SearchBarResultBehavior resultBehavior;
   final bool enabled;
+  final bool autofocus;
   final TextStyle textStyle;
   final ValueChanged<String>? onChanged;
   final ValueChanged<bool>? onFocused;
@@ -39,6 +40,7 @@ class SuperSearchBar {
     this.cancelButtonText = "Cancel",
     this.placeholderText = "Search",
     this.enabled = true,
+    this.autofocus = false,
     this.scrollBehavior = SearchBarScrollBehavior.floated,
     this.animationBehavior = SearchBarAnimationBehavior.top,
     this.resultBehavior = SearchBarResultBehavior.visibleOnFocus,
