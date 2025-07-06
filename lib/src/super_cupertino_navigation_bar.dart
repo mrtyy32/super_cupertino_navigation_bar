@@ -595,10 +595,6 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                       Flexible(
                                                         child:
                                                             CupertinoSearchTextField(
-                                                          autofocus: widget
-                                                              .appBar
-                                                              .searchBar!
-                                                              .autofocus,
                                                           prefixIcon: Opacity(
                                                             opacity: Store
                                                                     .instance
@@ -905,6 +901,10 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                         backgroundColor:
                                                             Colors.transparent,
                                                         autocorrect: false,
+                                                        autofocus: widget
+                                                            .appBar
+                                                            .searchBar!
+                                                            .autofocus,
                                                       ),
                                                     ),
                                                   ),
