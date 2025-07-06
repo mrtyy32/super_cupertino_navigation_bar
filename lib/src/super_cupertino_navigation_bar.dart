@@ -902,10 +902,9 @@ class _SuperScaffoldState extends State<SuperScaffold> {
                                                             Colors.transparent,
                                                         autocorrect: false,
                                                         autofocus: widget
-                                                                .appBar
-                                                                .searchBar!
-                                                                .autofocus ??
-                                                            false,
+                                                            .appBar
+                                                            .searchBar!
+                                                            .autofocus,
                                                       ),
                                                     ),
                                                   ),
